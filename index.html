@@ -136,6 +136,13 @@
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }
+        if (!localStorage.getItem('setupCompleted')) {
+            setTimeout(function() {
+                window.location.href = 'setup.html'; // Replace with your actual setup file name
+            }, 100); // Adjust delay as needed (100 milliseconds in this example)
+
+            localStorage.setItem('setupCompleted', true); // Set a flag to indicate setup completion
+        }
     </script>
 </body>
 </html>

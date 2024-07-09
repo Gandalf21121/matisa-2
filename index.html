@@ -114,30 +114,17 @@
     </div>
 
     <script>
-        // Function to receive message from edit.html
-        window.addEventListener('message', function(event) {
-            if (event.data === 'dataSaved') {
-                // Reload or update categories from localStorage
-                var categories = JSON.parse(localStorage.getItem('categories')) || [];
+        // Variables globales para almacenar las categorías
+        var categories = [];
     
-                categories.forEach(function(category, index) {
-                    var categoryNumber = index + 1;
-                    var categoryElement = document.getElementById('category' + categoryNumber);
+        // Función para cargar categorías desde localStorage si están disponibles
+        function loadCategoriesFromLocalStorage() {
+            var storedCategories = JSON.parse(localStorage.getItem('categories')) || [];
+            categories = storedCategories;
+        }
     
-                    if (categoryElement) {
-                        categoryElement.textContent = category.name;
-                        if (category.image) {
-                            categoryElement.style.backgroundImage = 'url(' + category.image + ')';
-                        }
-                    }
-                });
-            }
-        });
-    
-        // Load categories from localStorage on initial page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-    
+        // Función para actualizar la interfaz con las categorías cargadas
+        function updateUIWithCategories() {
             categories.forEach(function(category, index) {
                 var categoryNumber = index + 1;
                 var categoryElement = document.getElementById('category' + categoryNumber);
@@ -149,12 +136,29 @@
                     }
                 }
             });
+        }
+    
+        // Cargar categorías al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategoriesFromLocalStorage();
+            updateUIWithCategories();
         });
     
+        // Función para redirigir a productos de una categoría específica
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }
+    
+        // Función para manejar mensajes recibidos desde edit.html
+        window.addEventListener('message', function(event) {
+            if (event.data === 'dataSaved') {
+                // Actualizar categorías desde localStorage y actualizar la interfaz
+                loadCategoriesFromLocalStorage();
+                updateUIWithCategories();
+            }
+        });
     </script>
+    
     
     
 

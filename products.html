@@ -86,9 +86,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var urlParams = new URLSearchParams(window.location.search);
-            var categoryId = parseInt(urlParams.get('category')) - 1;
-            var categories = JSON.parse(urlParams.get('categories')) || [];
-            var category = categories[categoryId];
+            var categoryId = urlParams.get('category');
+            var categories = JSON.parse(localStorage.getItem('categories')) || [];
+            var category = categories.find(function(cat, index) {
+                return 'category' + (index + 1) === categoryId;
+            });
 
             if (category) {
                 var productListElement = document.getElementById('product-list');

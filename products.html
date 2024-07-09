@@ -88,14 +88,14 @@
             var urlParams = new URLSearchParams(window.location.search);
             var categoryId = urlParams.get('category');
             var categoryIndex = parseInt(categoryId) - 1;
-    
+
             // Retrieve categories data from sessionStorage
             var categories = JSON.parse(sessionStorage.getItem('categoryData')) || [];
-    
+
             if (categories[categoryIndex]) {
                 var products = categories[categoryIndex].products;
                 var productListElement = document.getElementById('product-list');
-    
+
                 products.forEach(function(product) {
                     var productElement = document.createElement('div');
                     productElement.classList.add('product');

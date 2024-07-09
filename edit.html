@@ -145,7 +145,7 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
-                    // Save image data to local storage
+                    // Save image data to localStorage
                     localStorage.setItem(previewId + '-image', e.target.result);
                 };
                 reader.readAsDataURL(file);
@@ -168,15 +168,12 @@
                     var newProduct = document.createElement('div');
                     newProduct.classList.add('product');
                     newProduct.innerHTML = '<img src="' + e.target.result + '" alt="Product Image">' +
-                                           '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
-                                           '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                        '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
+                        '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                     productList.appendChild(newProduct);
     
                     // Save product image to localStorage
                     localStorage.setItem(categoryId + '-product-image-' + productName, e.target.result);
-    
-                    // Notify index.html that changes are saved
-                    notifyChangesSaved();
                 };
                 reader.readAsDataURL(event.target.files[0]);
             };
@@ -187,8 +184,6 @@
         // Function to delete a product
         function deleteProduct(element) {
             element.parentNode.remove();
-            // Notify index.html that changes are saved
-            notifyChangesSaved();
         }
     
         // Save changes function
@@ -210,15 +205,11 @@
                 categories.push({ name: categoryName, image: categoryImage, products: products });
             }
     
+            // Save categories to localStorage
             localStorage.setItem('categories', JSON.stringify(categories));
             alert('Cambios guardados');
     
-            // Notify index.html that changes are saved
-            notifyChangesSaved();
-        }
-    
-        // Notify index.html that changes are saved
-        function notifyChangesSaved() {
+            // Notify parent window (index.html) that data has been saved
             if (window.opener) {
                 window.opener.postMessage('dataSaved', '*');
             }
@@ -249,14 +240,13 @@
                         var productElement = document.createElement('div');
                         productElement.classList.add('product');
                         productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                                                   '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
-                                                   '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                            '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
+                            '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                         categoryProductsContainer.appendChild(productElement);
                     });
                 }
             });
         });
-    
     
         // Event listeners for file input changes
         document.getElementById('category1-image').addEventListener('change', function() {
@@ -274,8 +264,8 @@
         document.getElementById('category4-image').addEventListener('change', function() {
             handleFileInput(this, 'category4-preview');
         });
-    
     </script>
+    
 
 
 </body>

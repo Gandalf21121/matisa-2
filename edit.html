@@ -137,92 +137,131 @@
     
         <button onclick="guardarCambios()">Guardar Cambios</button>
     </div>
-    <script>
-        // Function to handle file input change for category images
-        function handleFileInput(input, previewId) {
-            var file = input.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
-                };
-                reader.readAsDataURL(file);
-            }
+<script>
+    // Function to handle file input change for category images
+    function handleFileInput(input, previewId) {
+        var file = input.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
+                // Instead of saving to localStorage, send image data to index.html
+                sendMessage({ type: 'imageUpdated', id: previewId, image: e.target.result });
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
-        // Function to add a product to a specific category
-        function addProduct(categoryId) {
-            var productName = prompt("Ingrese el nombre del producto:");
-            var productPrice = prompt("Ingrese el precio del producto:");
-            var productImage = prompt("Ingrese la URL de la imagen del producto:");
+    // Function to add a product to a specific category
+    function addProduct(categoryId) {
+        var productName = prompt("Ingrese el nombre del producto:");
+        var productPrice = prompt("Ingrese el precio del producto:");
 
-            if (productName && productPrice && productImage) {
+        var productImageInput = document.createElement('input');
+        productImageInput.type = 'file';
+        productImageInput.accept = 'image/*';
+
+        productImageInput.onchange = function(event) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
                 var productList = document.getElementById(categoryId + '-products');
                 var newProduct = document.createElement('div');
                 newProduct.classList.add('product');
-                newProduct.innerHTML = '<img src="' + productImage + '" alt="Product Image">' +
+                newProduct.innerHTML = '<img src="' + e.target.result + '" alt="Product Image">' +
                                        '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
                                        '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                 productList.appendChild(newProduct);
-            }
-        }
 
-        // Function to delete a product
-        function deleteProduct(element) {
-            element.parentNode.remove();
-        }
+                // Instead of saving to localStorage, send product data to index.html
+                sendMessage({ type: 'productAdded', categoryId: categoryId, productName: productName, productPrice: productPrice, productImage: e.target.result });
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        };
 
-        // Save changes function
-        function saveChanges() {
-            var categoryName = document.getElementById('categoryName').value;
-            var categoryImage = document.getElementById('categoryImage').value;
+        productImageInput.click();
+    }
+
+    // Function to delete a product
+    function deleteProduct(element) {
+        element.parentNode.remove();
+    }
+
+    // Save changes function (removed localStorage usage)
+    function guardarCambios() {
+        var categories = [];
+
+        for (var i = 1; i <= 4; i++) {
+            var categoryName = document.getElementById('category' + i + '-name').value;
             var products = [];
 
-            // Gather products
-            document.querySelectorAll('.product').forEach(function(productElement) {
+            document.querySelectorAll('#category' + i + '-products .product').forEach(function(productElement) {
                 var productName = productElement.querySelector('strong').innerText;
                 var productPrice = productElement.querySelector('div').innerText.replace('Precio: ', '');
                 var productImage = productElement.querySelector('img').src;
                 products.push({ name: productName, price: productPrice, image: productImage });
             });
 
-            // Update index.html with the new data
-            updateIndexPage(categoryName, categoryImage, products);
-            alert('Cambios guardados en la página principal');
+            categories.push({ id: 'category' + i, name: categoryName, products: products });
         }
 
-        // Function to update index.html with new category and product data
-        function updateIndexPage(categoryName, categoryImage, products) {
-            // Example: Update category name
-            document.getElementById('category1-name').textContent = categoryName;
+        // Send categories data to index.html
+        sendMessage({ type: 'categoriesUpdated', categories: categories });
+        alert('Cambios guardados');
+    }
 
-            // Example: Update category image
-            var categoryPreview = document.getElementById('category1-preview');
-            if (categoryImage) {
-                categoryPreview.style.backgroundImage = 'url(' + categoryImage + ')';
-            } else {
-                categoryPreview.style.backgroundImage = 'none'; // Clear background image if no URL provided
+    // Function to send message to index.html
+    function sendMessage(message) {
+        window.parent.postMessage(message, '*'); // Sends message to the parent window (index.html)
+    }
+
+    // Event listeners for file input changes (kept as is)
+    document.getElementById('category1-image').addEventListener('change', function() {
+        handleFileInput(this, 'category1-preview');
+    });
+
+    document.getElementById('category2-image').addEventListener('change', function() {
+        handleFileInput(this, 'category2-preview');
+    });
+
+    document.getElementById('category3-image').addEventListener('change', function() {
+        handleFileInput(this, 'category3-preview');
+    });
+
+    document.getElementById('category4-image').addEventListener('change', function() {
+        handleFileInput(this, 'category4-preview');
+    });
+
+    // Load existing data (kept as is)
+    document.addEventListener('DOMContentLoaded', function() {
+        var categories = JSON.parse(localStorage.getItem('categories')) || [];
+
+        categories.forEach(function(category, index) {
+            var categoryNumber = index + 1;
+            var categoryElement = document.getElementById('category' + categoryNumber + '-name');
+            var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
+            var categoryProductsContainer = document.getElementById('category' + categoryNumber + '-products');
+
+            if (categoryElement) {
+                categoryElement.value = category.name;
+                if (category.image) {
+                    categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
+                }
             }
 
-            // Example: Update products for category
-            var productList = document.getElementById('category1-products');
-            productList.innerHTML = ''; // Clear existing products
-            products.forEach(function(product) {
-                var productElement = document.createElement('div');
-                productElement.classList.add('product');
-                productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                                           '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
-                                           '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
-                productList.appendChild(productElement);
-            });
-        }
-
-        // Event listeners for file input changes
-        document.getElementById('categoryImage').addEventListener('change', function() {
-            handleFileInput(this, 'category1-preview');
+            if (category.products) {
+                category.products.forEach(function(product) {
+                    var productElement = document.createElement('div');
+                    productElement.classList.add('product');
+                    productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
+                                               '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
+                                               '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                    categoryProductsContainer.appendChild(productElement);
+                });
+            }
         });
+    });
+</script>
 
-    </script>
 
 </body>
 </html>

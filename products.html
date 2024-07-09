@@ -87,49 +87,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             var urlParams = new URLSearchParams(window.location.search);
             var categoryId = urlParams.get('category');
-
-            // Function to find the category from the message sent by edit.html
-            function findCategoryFromMessage(categories, categoryId) {
-                return categories.find(function(cat) {
-                    return cat.id === categoryId;
+            var categories = JSON.parse(localStorage.getItem('categories')) || [];
+            var category = categories.find(function(cat, index) {
+                return 'category' + (index + 1) === categoryId;
+            });
+    
+            if (category) {
+                var productListElement = document.getElementById('product-list');
+                category.products.forEach(function(product) {
+                    var productElement = document.createElement('div');
+                    productElement.classList.add('product');
+                    productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
+                        '<div><strong>' + product.name + '</strong></div>' +
+                        '<div>Precio: ' + product.price + '</div>';
+                    productListElement.appendChild(productElement);
                 });
             }
-
-            // Event listener to receive messages from edit.html
-            window.addEventListener('message', function(event) {
-                if (event.data && event.data.categories) {
-                    var category = findCategoryFromMessage(event.data.categories, categoryId);
-
-                    if (category) {
-                        renderProducts(category.products);
-                    }
-                }
-            });
-
-            // Initial rendering based on local storage (if needed)
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-            var category = findCategoryFromMessage(categories, categoryId);
-
-            if (category) {
-                renderProducts(category.products);
-            }
         });
-
-        // Function to render products in the product list
-        function renderProducts(products) {
-            var productListElement = document.getElementById('product-list');
-            productListElement.innerHTML = ''; // Clear previous products
-
-            products.forEach(function(product) {
-                var productElement = document.createElement('div');
-                productElement.classList.add('product');
-                productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                                           '<div><strong>' + product.name + '</strong></div>' +
-                                           '<div>Precio: ' + product.price + '</div>';
-                productListElement.appendChild(productElement);
-            });
-        }
     </script>
+    
+
 
 </body>
 </html>

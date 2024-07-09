@@ -136,13 +136,8 @@
         <button onclick="guardarCambios()">Guardar Cambios</button>
     </div>
     <script>
-        var categoryData = [
-            { name: '', image: '', products: [] },
-            { name: '', image: '', products: [] },
-            { name: '', image: '', products: [] },
-            { name: '', image: '', products: [] }
-        ];
-    
+        var categoryData = [];
+
         // Function to handle file input change for category images
         function handleFileInput(input, previewId) {
             var file = input.files[0];
@@ -150,9 +145,6 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
-                    // Save image data to variables
-                    var categoryIndex = parseInt(previewId.replace('category', '').replace('-preview', '')) - 1;
-                    categoryData[categoryIndex].image = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -177,10 +169,6 @@
                                            '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
                                            '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                     productList.appendChild(newProduct);
-    
-                    // Save product image to variables
-                    var categoryIndex = parseInt(categoryId.replace('category', '')) - 1;
-                    categoryData[categoryIndex].products.push({ name: productName, price: productPrice, image: e.target.result });
                 };
                 reader.readAsDataURL(event.target.files[0]);
             };
@@ -190,45 +178,55 @@
     
         // Function to delete a product
         function deleteProduct(element) {
-            var productElement = element.parentNode;
-            var categoryElement = productElement.parentNode;
-            var categoryIndex = parseInt(categoryElement.id.replace('category', '').replace('-products', '')) - 1;
-            var productName = productElement.querySelector('strong').innerText;
-    
-            // Remove product from variables
-            categoryData[categoryIndex].products = categoryData[categoryIndex].products.filter(product => product.name !== productName);
-    
-            // Remove product element from DOM
-            productElement.remove();
+            element.parentNode.remove();
         }
     
         // Save changes function
         function guardarCambios() {
+            var categories = [];
+    
             for (var i = 1; i <= 4; i++) {
                 var categoryName = document.getElementById('category' + i + '-name').value;
-                categoryData[i - 1].name = categoryName;
+                var categoryImage = document.getElementById('category' + i + '-preview').style.backgroundImage.replace('url("', '').replace('")', '');
+                var products = [];
+    
+                document.querySelectorAll('#category' + i + '-products .product').forEach(function(productElement) {
+                    var productName = productElement.querySelector('strong').innerText;
+                    var productPrice = productElement.querySelector('div').innerText.replace('Precio: ', '');
+                    var productImage = productElement.querySelector('img').src;
+                    products.push({ name: productName, price: productPrice, image: productImage });
+                });
+    
+                categories.push({ name: categoryName, image: categoryImage, products: products });
             }
-            // Save data to sessionStorage
-            sessionStorage.setItem('categoryData', JSON.stringify(categoryData));
+    
+            categoryData = categories;
             alert('Cambios guardados');
+            redirectToIndex();
+        }
+
+        function redirectToIndex() {
+            var queryParams = new URLSearchParams({ categories: JSON.stringify(categoryData) }).toString();
+            window.location.href = 'index.html?' + queryParams;
         }
     
         // Load existing data
         document.addEventListener('DOMContentLoaded', function() {
-            var savedCategoryData = JSON.parse(sessionStorage.getItem('categoryData')) || categoryData;
-            savedCategoryData.forEach(function(category, index) {
+            var categories = JSON.parse(localStorage.getItem('categories')) || [];
+        
+            categories.forEach(function(category, index) {
                 var categoryNumber = index + 1;
                 var categoryElement = document.getElementById('category' + categoryNumber + '-name');
                 var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
                 var categoryProductsContainer = document.getElementById('category' + categoryNumber + '-products');
-    
+        
                 if (categoryElement) {
                     categoryElement.value = category.name;
                     if (category.image) {
                         categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
                     }
                 }
-    
+        
                 // Load products for the category
                 if (category.products) {
                     category.products.forEach(function(product) {
@@ -241,8 +239,8 @@
                     });
                 }
             });
-            categoryData = savedCategoryData; // Update global variable with loaded data
         });
+
     
         // Event listeners for file input changes
         document.getElementById('category1-image').addEventListener('change', function() {
@@ -260,8 +258,9 @@
         document.getElementById('category4-image').addEventListener('change', function() {
             handleFileInput(this, 'category4-preview');
         });
+    
     </script>
-
 
 </body>
 </html>
+

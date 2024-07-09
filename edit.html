@@ -136,6 +136,13 @@
         <button onclick="guardarCambios()">Guardar Cambios</button>
     </div>
     <script>
+        var categoryData = [
+            { name: '', image: '', products: [] },
+            { name: '', image: '', products: [] },
+            { name: '', image: '', products: [] },
+            { name: '', image: '', products: [] }
+        ];
+
         // Function to handle file input change for category images
         function handleFileInput(input, previewId) {
             var file = input.files[0];
@@ -143,8 +150,9 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
-                    // Save image data to backend instead of local storage
-                    saveImageToBackend(previewId + '-image', e.target.result);
+                    // Save image data to variables
+                    var categoryIndex = parseInt(previewId.replace('category', '').replace('-preview', '')) - 1;
+                    categoryData[categoryIndex].image = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
@@ -166,12 +174,13 @@
                     var newProduct = document.createElement('div');
                     newProduct.classList.add('product');
                     newProduct.innerHTML = '<img src="' + e.target.result + '" alt="Product Image">' +
-                        '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
-                        '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                                           '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
+                                           '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                     productList.appendChild(newProduct);
 
-                    // Save product data to backend instead of local storage
-                    saveProductToBackend(categoryId, productName, productPrice, e.target.result);
+                    // Save product image to variables
+                    var categoryIndex = parseInt(categoryId.replace('category', '')) - 1;
+                    categoryData[categoryIndex].products.push({ name: productName, price: productPrice, image: e.target.result });
                 };
                 reader.readAsDataURL(event.target.files[0]);
             };
@@ -181,104 +190,30 @@
 
         // Function to delete a product
         function deleteProduct(element) {
-            element.parentNode.remove();
-        }
+            var productElement = element.parentNode;
+            var categoryElement = productElement.parentNode;
+            var categoryIndex = parseInt(categoryElement.id.replace('category', '').replace('-products', '')) - 1;
+            var productName = productElement.querySelector('strong').innerText;
 
-        // Function to save image data to backend
-        function saveImageToBackend(key, imageData) {
-            // Replace this with actual backend API call to save image data
-            // Example using fetch API:
-            fetch('https://your-backend-url/save-image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ key: key, imageData: imageData }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save image data');
-                }
-                console.log('Image data saved successfully');
-            })
-            .catch(error => {
-                console.error('Error saving image data:', error);
-            });
-        }
+            // Remove product from variables
+            categoryData[categoryIndex].products = categoryData[categoryIndex].products.filter(product => product.name !== productName);
 
-        // Function to save product data to backend
-        function saveProductToBackend(categoryId, productName, productPrice, productImage) {
-            // Replace this with actual backend API call to save product data
-            // Example using fetch API:
-            fetch('https://your-backend-url/save-product', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ categoryId: categoryId, productName: productName, productPrice: productPrice, productImage: productImage }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save product data');
-                }
-                console.log('Product data saved successfully');
-            })
-            .catch(error => {
-                console.error('Error saving product data:', error);
-            });
+            // Remove product element from DOM
+            productElement.remove();
         }
 
         // Save changes function
         function guardarCambios() {
-            var categories = [];
-
             for (var i = 1; i <= 4; i++) {
                 var categoryName = document.getElementById('category' + i + '-name').value;
-                var categoryImage = localStorage.getItem('category' + i + '-preview-image');
-                var products = [];
-
-                document.querySelectorAll('#category' + i + '-products .product').forEach(function(productElement) {
-                    var productName = productElement.querySelector('strong').innerText;
-                    var productPrice = productElement.querySelector('div').innerText.replace('Precio: ', '');
-                    var productImage = productElement.querySelector('img').src;
-                    products.push({ name: productName, price: productPrice, image: productImage });
-                });
-
-                categories.push({ name: categoryName, image: categoryImage, products: products });
+                categoryData[i - 1].name = categoryName;
             }
-
-            // Save categories data to backend instead of local storage
-            saveCategoriesToBackend(categories);
             alert('Cambios guardados');
-        }
-
-        // Function to save categories data to backend
-        function saveCategoriesToBackend(categories) {
-            // Replace this with actual backend API call to save categories data
-            // Example using fetch API:
-            fetch('https://your-backend-url/save-categories', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ categories: categories }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save categories data');
-                }
-                console.log('Categories data saved successfully');
-            })
-            .catch(error => {
-                console.error('Error saving categories data:', error);
-            });
         }
 
         // Load existing data
         document.addEventListener('DOMContentLoaded', function() {
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-
-            categories.forEach(function(category, index) {
+            categoryData.forEach(function(category, index) {
                 var categoryNumber = index + 1;
                 var categoryElement = document.getElementById('category' + categoryNumber + '-name');
                 var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
@@ -288,8 +223,6 @@
                     categoryElement.value = category.name;
                     if (category.image) {
                         categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
-                        // Save image data to local storage
-                        localStorage.setItem('category' + categoryNumber + '-preview-image', category.image);
                     }
                 }
 
@@ -299,8 +232,8 @@
                         var productElement = document.createElement('div');
                         productElement.classList.add('product');
                         productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                            '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
-                            '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                                                   '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
+                                                   '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                         categoryProductsContainer.appendChild(productElement);
                     });
                 }
@@ -323,10 +256,7 @@
         document.getElementById('category4-image').addEventListener('change', function() {
             handleFileInput(this, 'category4-preview');
         });
-
-
     </script>
-
 
 </body>
 </html>

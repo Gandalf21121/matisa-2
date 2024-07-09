@@ -116,19 +116,23 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var urlParams = new URLSearchParams(window.location.search);
-            var categories = JSON.parse(urlParams.get('categories')) || [];
+            var categoriesData = urlParams.get('data');
 
-            categories.forEach(function(category, index) {
-                var categoryNumber = index + 1;
-                var categoryElement = document.getElementById('category' + categoryNumber);
+            if (categoriesData) {
+                var categories = JSON.parse(decodeURIComponent(categoriesData));
 
-                if (categoryElement) {
-                    categoryElement.textContent = category.name;
-                    if (category.image) {
-                        categoryElement.style.backgroundImage = 'url(' + category.image + ')';
+                categories.forEach(function(category, index) {
+                    var categoryNumber = index + 1;
+                    var categoryElement = document.getElementById('category' + categoryNumber);
+
+                    if (categoryElement) {
+                        categoryElement.textContent = category.name;
+                        if (category.image) {
+                            categoryElement.style.backgroundImage = 'url(' + category.image + ')';
+                        }
                     }
-                }
-            });
+                });
+            }
         });
 
         function redirectToProducts(categoryId) {

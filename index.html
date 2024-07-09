@@ -114,22 +114,21 @@
     </div>
 
     <script>
+        // Check for data initialization from edit.html
         document.addEventListener('DOMContentLoaded', function() {
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-
-            categories.forEach(function(category, index) {
-                var categoryNumber = index + 1;
-                var categoryElement = document.getElementById('category' + categoryNumber);
-
-                if (categoryElement) {
-                    categoryElement.textContent = category.name;
-                    if (category.image) {
-                        categoryElement.style.backgroundImage = 'url(' + category.image + ')';
-                    }
-                }
-            });
+            var dataInitialized = localStorage.getItem('dataInitialized');
+            if (!dataInitialized) {
+                // Initialize data or edit in edit.html without displaying it
+                var editWindow = window.open('edit.html', '_blank');
+                editWindow.onload = function() {
+                    editWindow.document.title = "Editing Data"; // Optional: Change window title for clarity
+                    editWindow.document.body.style.display = 'none'; // Hide edit.html content
+                    localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
+                };
+            }
         });
 
+        // Function to redirect to products.html
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }

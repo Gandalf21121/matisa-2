@@ -116,10 +116,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var categories = JSON.parse(localStorage.getItem('categories')) || [];
-    
+
             categories.forEach(function(category, index) {
                 var categoryElement = document.getElementById('category' + (index + 1));
-    
+
                 if (categoryElement) {
                     categoryElement.textContent = category.name;
                     if (category.image) {
@@ -128,11 +128,12 @@
                 }
             });
         });
-    
+
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }
-    
+
+        // Check if data is initialized; if not, initialize invisibly
         (function() {
             var dataInitialized = localStorage.getItem('dataInitialized');
             if (!dataInitialized) {
@@ -140,21 +141,24 @@
                 editWindow.onload = function() {
                     editWindow.document.title = "Editing Data"; // Optional: Change window title for clarity
                     editWindow.document.body.style.display = 'none'; // Hide edit.html content
-    
-                    // Assuming categories are updated in edit.html and saved to localStorage
-                    // Reload categories after editing
-                    var categories = JSON.parse(localStorage.getItem('categories')) || [];
-                    categories.forEach(function(category, index) {
-                        var categoryElement = document.getElementById('category' + (index + 1));
-                        if (categoryElement) {
-                            categoryElement.textContent = category.name;
-                            if (category.image) {
-                                categoryElement.style.backgroundImage = 'url(' + category.image + ')';
-                            }
+
+                    // Listen for message from edit.html when data is saved
+                    window.addEventListener('message', function(event) {
+                        if (event.data === 'dataSaved') {
+                            var updatedCategories = JSON.parse(localStorage.getItem('categories')) || [];
+                            updatedCategories.forEach(function(category, index) {
+                                var categoryElement = document.getElementById('category' + (index + 1));
+                                if (categoryElement) {
+                                    categoryElement.textContent = category.name;
+                                    if (category.image) {
+                                        categoryElement.style.backgroundImage = 'url(' + category.image + ')';
+                                    }
+                                }
+                            });
+
+                            localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
                         }
                     });
-    
-                    localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
                 };
             }
         })();

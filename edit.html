@@ -145,8 +145,8 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById(previewId).style.backgroundImage = 'url(' + e.target.result + ')';
-                    // Instead of saving to localStorage, send image data to index.html
-                    sendMessage({ type: 'imageUpdated', id: previewId, image: e.target.result });
+                    // Save image data to local storage
+                    localStorage.setItem(previewId + '-image', e.target.result);
                 };
                 reader.readAsDataURL(file);
             }
@@ -172,8 +172,11 @@
                                            '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                     productList.appendChild(newProduct);
     
-                    // Instead of saving to localStorage, send product data to index.html
-                    sendMessage({ type: 'productAdded', categoryId: categoryId, productName: productName, productPrice: productPrice, productImage: e.target.result });
+                    // Save product image to localStorage
+                    localStorage.setItem(categoryId + '-product-image-' + productName, e.target.result);
+    
+                    // Notify index.html that changes are saved
+                    notifyChangesSaved();
                 };
                 reader.readAsDataURL(event.target.files[0]);
             };
@@ -184,14 +187,17 @@
         // Function to delete a product
         function deleteProduct(element) {
             element.parentNode.remove();
+            // Notify index.html that changes are saved
+            notifyChangesSaved();
         }
     
-        // Save changes function (removed localStorage usage)
+        // Save changes function
         function guardarCambios() {
             var categories = [];
     
             for (var i = 1; i <= 4; i++) {
                 var categoryName = document.getElementById('category' + i + '-name').value;
+                var categoryImage = localStorage.getItem('category' + i + '-preview-image');
                 var products = [];
     
                 document.querySelectorAll('#category' + i + '-products .product').forEach(function(productElement) {
@@ -201,20 +207,58 @@
                     products.push({ name: productName, price: productPrice, image: productImage });
                 });
     
-                categories.push({ id: 'category' + i, name: categoryName, products: products });
+                categories.push({ name: categoryName, image: categoryImage, products: products });
             }
     
-            // Send categories data to index.html
-            sendMessage({ type: 'categoriesUpdated', categories: categories });
+            localStorage.setItem('categories', JSON.stringify(categories));
             alert('Cambios guardados');
+    
+            // Notify index.html that changes are saved
+            notifyChangesSaved();
         }
     
-        // Function to send message to index.html
-        function sendMessage(message) {
-            window.parent.postMessage(message, '*'); // Sends message to the parent window (index.html)
+        // Notify index.html that changes are saved
+        function notifyChangesSaved() {
+            if (window.opener) {
+                window.opener.postMessage('dataSaved', '*');
+            }
         }
     
-        // Event listeners for file input changes (kept as is)
+        // Load existing data
+        document.addEventListener('DOMContentLoaded', function() {
+            var categories = JSON.parse(localStorage.getItem('categories')) || [];
+    
+            categories.forEach(function(category, index) {
+                var categoryNumber = index + 1;
+                var categoryElement = document.getElementById('category' + categoryNumber + '-name');
+                var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
+                var categoryProductsContainer = document.getElementById('category' + categoryNumber + '-products');
+    
+                if (categoryElement) {
+                    categoryElement.value = category.name;
+                    if (category.image) {
+                        categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
+                        // Save image data to local storage
+                        localStorage.setItem('category' + categoryNumber + '-preview-image', category.image);
+                    }
+                }
+    
+                // Load products for the category
+                if (category.products) {
+                    category.products.forEach(function(product) {
+                        var productElement = document.createElement('div');
+                        productElement.classList.add('product');
+                        productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
+                                                   '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
+                                                   '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
+                        categoryProductsContainer.appendChild(productElement);
+                    });
+                }
+            });
+        });
+    
+    
+        // Event listeners for file input changes
         document.getElementById('category1-image').addEventListener('change', function() {
             handleFileInput(this, 'category1-preview');
         });
@@ -231,35 +275,6 @@
             handleFileInput(this, 'category4-preview');
         });
     
-        // Load existing data (kept as is)
-        document.addEventListener('DOMContentLoaded', function() {
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-    
-            categories.forEach(function(category, index) {
-                var categoryNumber = index + 1;
-                var categoryElement = document.getElementById('category' + categoryNumber + '-name');
-                var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
-                var categoryProductsContainer = document.getElementById('category' + categoryNumber + '-products');
-    
-                if (categoryElement) {
-                    categoryElement.value = category.name;
-                    if (category.image) {
-                        categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
-                    }
-                }
-    
-                if (category.products) {
-                    category.products.forEach(function(product) {
-                        var productElement = document.createElement('div');
-                        productElement.classList.add('product');
-                        productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                                                   '<div><strong>' + product.name + '</strong><br>Precio: ' + product.price + '</div>' +
-                                                   '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
-                        categoryProductsContainer.appendChild(productElement);
-                    });
-                }
-            });
-        });
     </script>
 
 

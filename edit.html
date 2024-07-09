@@ -142,7 +142,7 @@
             { name: '', image: '', products: [] },
             { name: '', image: '', products: [] }
         ];
-
+    
         // Function to handle file input change for category images
         function handleFileInput(input, previewId) {
             var file = input.files[0];
@@ -157,16 +157,16 @@
                 reader.readAsDataURL(file);
             }
         }
-
+    
         // Function to add a product to a specific category
         function addProduct(categoryId) {
             var productName = prompt("Ingrese el nombre del producto:");
             var productPrice = prompt("Ingrese el precio del producto:");
-
+    
             var productImageInput = document.createElement('input');
             productImageInput.type = 'file';
             productImageInput.accept = 'image/*';
-
+    
             productImageInput.onchange = function(event) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
@@ -177,55 +177,58 @@
                                            '<div><strong>' + productName + '</strong><br>Precio: ' + productPrice + '</div>' +
                                            '<span class="delete-product" onclick="deleteProduct(this)">Eliminar</span>';
                     productList.appendChild(newProduct);
-
+    
                     // Save product image to variables
                     var categoryIndex = parseInt(categoryId.replace('category', '')) - 1;
                     categoryData[categoryIndex].products.push({ name: productName, price: productPrice, image: e.target.result });
                 };
                 reader.readAsDataURL(event.target.files[0]);
             };
-
+    
             productImageInput.click();
         }
-
+    
         // Function to delete a product
         function deleteProduct(element) {
             var productElement = element.parentNode;
             var categoryElement = productElement.parentNode;
             var categoryIndex = parseInt(categoryElement.id.replace('category', '').replace('-products', '')) - 1;
             var productName = productElement.querySelector('strong').innerText;
-
+    
             // Remove product from variables
             categoryData[categoryIndex].products = categoryData[categoryIndex].products.filter(product => product.name !== productName);
-
+    
             // Remove product element from DOM
             productElement.remove();
         }
-
+    
         // Save changes function
         function guardarCambios() {
             for (var i = 1; i <= 4; i++) {
                 var categoryName = document.getElementById('category' + i + '-name').value;
                 categoryData[i - 1].name = categoryName;
             }
+            // Save data to sessionStorage
+            sessionStorage.setItem('categoryData', JSON.stringify(categoryData));
             alert('Cambios guardados');
         }
-
+    
         // Load existing data
         document.addEventListener('DOMContentLoaded', function() {
-            categoryData.forEach(function(category, index) {
+            var savedCategoryData = JSON.parse(sessionStorage.getItem('categoryData')) || categoryData;
+            savedCategoryData.forEach(function(category, index) {
                 var categoryNumber = index + 1;
                 var categoryElement = document.getElementById('category' + categoryNumber + '-name');
                 var categoryPreview = document.getElementById('category' + categoryNumber + '-preview');
                 var categoryProductsContainer = document.getElementById('category' + categoryNumber + '-products');
-
+    
                 if (categoryElement) {
                     categoryElement.value = category.name;
                     if (category.image) {
                         categoryPreview.style.backgroundImage = 'url(' + category.image + ')';
                     }
                 }
-
+    
                 // Load products for the category
                 if (category.products) {
                     category.products.forEach(function(product) {
@@ -238,21 +241,22 @@
                     });
                 }
             });
+            categoryData = savedCategoryData; // Update global variable with loaded data
         });
-
+    
         // Event listeners for file input changes
         document.getElementById('category1-image').addEventListener('change', function() {
             handleFileInput(this, 'category1-preview');
         });
-
+    
         document.getElementById('category2-image').addEventListener('change', function() {
             handleFileInput(this, 'category2-preview');
         });
-
+    
         document.getElementById('category3-image').addEventListener('change', function() {
             handleFileInput(this, 'category3-preview');
         });
-
+    
         document.getElementById('category4-image').addEventListener('change', function() {
             handleFileInput(this, 'category4-preview');
         });

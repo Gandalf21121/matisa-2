@@ -86,17 +86,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var urlParams = new URLSearchParams(window.location.search);
-            var categoryId = urlParams.get('category');
-            var categoryIndex = parseInt(categoryId) - 1;
+            var categoryId = parseInt(urlParams.get('category')) - 1;
+            var categories = JSON.parse(urlParams.get('categories')) || [];
+            var category = categories[categoryId];
 
-            // Retrieve categories data from sessionStorage
-            var categories = JSON.parse(sessionStorage.getItem('categoryData')) || [];
-
-            if (categories[categoryIndex]) {
-                var products = categories[categoryIndex].products;
+            if (category) {
                 var productListElement = document.getElementById('product-list');
-
-                products.forEach(function(product) {
+                category.products.forEach(function(product) {
                     var productElement = document.createElement('div');
                     productElement.classList.add('product');
                     productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
@@ -104,8 +100,6 @@
                                                '<div>Precio: ' + product.price + '</div>';
                     productListElement.appendChild(productElement);
                 });
-            } else {
-                console.error('Category not found:', categoryIndex);
             }
         });
     </script>

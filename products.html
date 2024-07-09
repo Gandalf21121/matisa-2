@@ -87,22 +87,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             var urlParams = new URLSearchParams(window.location.search);
             var categoryId = urlParams.get('category');
-
-            // Fetch products data from backend API
-            fetch('http://localhost:3000/get-products?category=' + categoryId)
-                .then(response => response.json())
-                .then(products => {
-                    var productListElement = document.getElementById('product-list');
-                    products.forEach(function(product) {
-                        var productElement = document.createElement('div');
-                        productElement.classList.add('product');
-                        productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
-                                                   '<div><strong>' + product.name + '</strong></div>' +
-                                                   '<div>Precio: ' + product.price + '</div>';
-                        productListElement.appendChild(productElement);
-                    });
-                })
-                .catch(error => console.error('Error fetching products:', error));
+            var categoryIndex = parseInt(categoryId) - 1;
+    
+            // Retrieve categories data from sessionStorage
+            var categories = JSON.parse(sessionStorage.getItem('categoryData')) || [];
+    
+            if (categories[categoryIndex]) {
+                var products = categories[categoryIndex].products;
+                var productListElement = document.getElementById('product-list');
+    
+                products.forEach(function(product) {
+                    var productElement = document.createElement('div');
+                    productElement.classList.add('product');
+                    productElement.innerHTML = '<img src="' + product.image + '" alt="Product Image">' +
+                                               '<div><strong>' + product.name + '</strong></div>' +
+                                               '<div>Precio: ' + product.price + '</div>';
+                    productListElement.appendChild(productElement);
+                });
+            } else {
+                console.error('Category not found:', categoryIndex);
+            }
         });
     </script>
 

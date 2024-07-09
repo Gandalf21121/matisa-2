@@ -113,17 +113,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('categories')) {
-                window.location.href = 'setup.html';
-                return;
-            }
-
-            var categories = JSON.parse(localStorage.getItem('categories')) || [];
-
+            var categories = JSON.parse(sessionStorage.getItem('categoryData')) || [];
+    
             categories.forEach(function(category, index) {
                 var categoryNumber = index + 1;
                 var categoryElement = document.getElementById('category' + categoryNumber);
-
+    
                 if (categoryElement) {
                     categoryElement.textContent = category.name;
                     if (category.image) {
@@ -132,15 +127,10 @@
                 }
             });
         });
-
+    
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }
-       
-        setTimeout(function() {
-            window.location.href = 'edit.html'; // Replace with your actual setup file name
-        }, 100); // Adjust delay as needed (100 milliseconds in this example)
-      
     </script>
 </body>
 </html>

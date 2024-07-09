@@ -116,13 +116,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var categories = JSON.parse(localStorage.getItem('categories')) || [];
-    
+
             // Function to update categories based on localStorage data
             function updateCategories() {
                 categories.forEach(function(category, index) {
                     var categoryNumber = index + 1;
                     var categoryElement = document.getElementById('category' + categoryNumber);
-    
+
                     if (categoryElement) {
                         categoryElement.textContent = category.name;
                         if (category.image) {
@@ -131,33 +131,28 @@
                     }
                 });
             }
-    
+
             var dataInitialized = localStorage.getItem('dataInitialized');
             if (!dataInitialized) {
                 // Initialize or edit data in edit.html without displaying it
-                var editWindow = window.open('edit.html', '_self'); // Open in the same tab
-    
-                // Check when edit.html is loaded
-                editWindow.onload = function() {
-                    // Hide edit.html content
-                    editWindow.document.body.style.display = 'none';
-    
+                var editFrame = document.createElement('iframe');
+                editFrame.style.display = 'none'; // Hide the iframe
+                editFrame.src = 'edit.html';
+                editFrame.onload = function() {
                     // Assuming categories are updated in edit.html and saved to localStorage
                     // Reload categories after editing
                     categories = JSON.parse(localStorage.getItem('categories')) || [];
                     updateCategories();
-    
+
                     localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
-    
-                    // After editing, redirect to index.html
-                    window.location.href = 'index.html';
                 };
+                document.body.appendChild(editFrame); // Append the iframe to the document
             } else {
                 // Data already initialized, update categories
                 updateCategories();
             }
         });
-    
+
         // Function to redirect to products.html
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;

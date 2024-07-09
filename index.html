@@ -116,48 +116,50 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var categories = JSON.parse(localStorage.getItem('categories')) || [];
-
-            // Function to update categories based on localStorage data
-            function updateCategories() {
-                categories.forEach(function(category, index) {
-                    var categoryNumber = index + 1;
-                    var categoryElement = document.getElementById('category' + categoryNumber);
-
-                    if (categoryElement) {
-                        categoryElement.textContent = category.name;
-                        if (category.image) {
-                            categoryElement.style.backgroundImage = 'url(' + category.image + ')';
-                        }
+    
+            categories.forEach(function(category, index) {
+                var categoryElement = document.getElementById('category' + (index + 1));
+    
+                if (categoryElement) {
+                    categoryElement.textContent = category.name;
+                    if (category.image) {
+                        categoryElement.style.backgroundImage = 'url(' + category.image + ')';
                     }
-                });
-            }
-
-            var dataInitialized = localStorage.getItem('dataInitialized');
-            if (!dataInitialized) {
-                // Initialize or edit data in edit.html without displaying it
-                var editFrame = document.createElement('iframe');
-                editFrame.style.display = 'none'; // Hide the iframe
-                editFrame.src = 'edit.html';
-                editFrame.onload = function() {
-                    // Assuming categories are updated in edit.html and saved to localStorage
-                    // Reload categories after editing
-                    categories = JSON.parse(localStorage.getItem('categories')) || [];
-                    updateCategories();
-
-                    localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
-                };
-                document.body.appendChild(editFrame); // Append the iframe to the document
-            } else {
-                // Data already initialized, update categories
-                updateCategories();
-            }
+                }
+            });
         });
-
-        // Function to redirect to products.html
+    
         function redirectToProducts(categoryId) {
             window.location.href = 'products.html?category=' + categoryId;
         }
+    
+        (function() {
+            var dataInitialized = localStorage.getItem('dataInitialized');
+            if (!dataInitialized) {
+                var editWindow = window.open('edit.html', '_blank');
+                editWindow.onload = function() {
+                    editWindow.document.title = "Editing Data"; // Optional: Change window title for clarity
+                    editWindow.document.body.style.display = 'none'; // Hide edit.html content
+    
+                    // Assuming categories are updated in edit.html and saved to localStorage
+                    // Reload categories after editing
+                    var categories = JSON.parse(localStorage.getItem('categories')) || [];
+                    categories.forEach(function(category, index) {
+                        var categoryElement = document.getElementById('category' + (index + 1));
+                        if (categoryElement) {
+                            categoryElement.textContent = category.name;
+                            if (category.image) {
+                                categoryElement.style.backgroundImage = 'url(' + category.image + ')';
+                            }
+                        }
+                    });
+    
+                    localStorage.setItem('dataInitialized', 'true'); // Mark as initialized
+                };
+            }
+        })();
     </script>
+
 
 </body>
 </html>

@@ -103,10 +103,10 @@
         </div>
 
         <div class="categories-container">
-            <div class="category" id="category1" onclick="redirectToProducts('1')"></div>
-            <div class="category" id="category2" onclick="redirectToProducts('2')"></div>
-            <div class="category" id="category3" onclick="redirectToProducts('3')"></div>
-            <div class="category" id="category4" onclick="redirectToProducts('4')"></div>
+            <div class="category" id="category1" onclick="redirectToProducts('category1')"></div>
+            <div class="category" id="category2" onclick="redirectToProducts('category2')"></div>
+            <div class="category" id="category3" onclick="redirectToProducts('category3')"></div>
+            <div class="category" id="category4" onclick="redirectToProducts('category4')"></div>
         </div>
         <div class="contact-info">
         <p>Comprar al siguiente contacto:</p>
@@ -115,35 +115,33 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var categoriesData = urlParams.get('data');
+            var categories = JSON.parse(localStorage.getItem('categories')) || [];
 
-            if (categoriesData) {
-                var categories = JSON.parse(decodeURIComponent(categoriesData));
+            categories.forEach(function(category, index) {
+                var categoryNumber = index + 1;
+                var categoryElement = document.getElementById('category' + categoryNumber);
 
-                categories.forEach(function(category, index) {
-                    var categoryNumber = index + 1;
-                    var categoryElement = document.getElementById('category' + categoryNumber);
-
-                    if (categoryElement) {
-                        categoryElement.textContent = category.name;
-                        if (category.image) {
-                            categoryElement.style.backgroundImage = 'url(' + category.image + ')';
-                        }
+                if (categoryElement) {
+                    categoryElement.textContent = category.name;
+                    if (category.image) {
+                        categoryElement.style.backgroundImage = 'url(' + category.image + ')';
                     }
-                });
-            }
+                }
+            });
         });
 
         function redirectToProducts(categoryId) {
-            var urlParams = new URLSearchParams(window.location.search);
-            var categories = urlParams.get('categories');
-            window.location.href = 'products.html?category=' + categoryId + '&categories=' + categories;
+            window.location.href = 'products.html?category=' + categoryId;
         }
     </script>
 
 </body>
 </html>
+
+
+
+
+
 
 
 
